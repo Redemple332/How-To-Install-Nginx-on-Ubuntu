@@ -1,5 +1,7 @@
 # How-To-Install-Nginx-on-Ubuntu
 
+#### (Last Update-February 17 2022)
+
 ### Introduction
 
 Nginx is one of the most popular web servers in the world and is responsible for hosting some of the largest and highest-traffic sites on the internet. It is more resource-friendly than Apache in most cases and can be used as a web server or reverse proxy.
@@ -492,3 +494,134 @@ $ sudo service nginx restart
 Try visiting your url now in the browser and if everything worked then **you should now get a 404 page instead of the Nginx success page** (this is actually a GOOD thing). This is because now Nginx is pointing at the Laravel folder (specifically the public folder inside the Laravel folder) instead of the html folder which contains that success page. Of course we haven’t installed Laravel yet, so that public folder doesn’t exist, hence the 404 error.
 
 ## Step 9: Create Swap File (Optional)
+
+Before we install composer or Laravel, we need to think about memory. Installing these applications require a larger download (compared to the other little stuff we have been downloading) and might potentially eat up all of our RAM if we are on a smaller server with less than 1Gb of memory. So if your server has more than 1Gb of memory then you can probably skip this step. If not, then it’s a good idea to create a swap file to accomodate the extra download sizes and leave some memory in RAM for our server to run during the download.
+
+Building a swap file allows the operating system to move data off the RAM memory and onto the SSD when it doesn’t have enough space. This is mostly only important while installing larger applications.
+
+Remove Free Storage
+
+```shell
+$ sudo swapoff -a
+```
+
+We will create a 2Gb swap file on the SSD:
+
+```shell
+$ sudo fallocate -l 2G /swapfile
+```
+
+Now we tell Ubuntu to format it as swap space:
+
+```shell
+$ sudo mkswap /swapfile
+```
+
+And finally to start using it we type:
+
+```shell
+$sudo swapon /swapfile
+```
+
+Now we are good to install larger stuff.
+
+## Step 10: Install Composer
+
+You have installed composer before (otherwise you wouldn’t have made it to this point in your life where you are reading a tutorial about how to deploy a Laravel app), and this is no different than before. Follow the instructions just like on the GetComposer.org website.
+
+```shell
+$ cd ~
+$ curl -sS https://getcomposer.org/installer | php
+```
+
+Now we have `composer.phar` in our home folder, and it’s time to move it into our bin so we can use composer commands easier by just typing `composer`.
+
+```shell
+$ sudo mv composer.phar /usr/local/bin/composer
+```
+
+Check Composer Version ang Git
+
+```shell
+$ composer -v
+$ man git
+```
+
+You can try typing `composer right now and you should get all the composer help files you are used to getting when using it on your local computer. Hopefully you are starting to feel at home.
+
+## Step 14: Install Requirements
+
+To install php
+
+- `$ sudo apt install php7.2-xml`
+
+Install this for php zip
+
+- `$ sudo apt-get install php7.2-zip`
+
+Install this for image processing
+
+- `$ sudo apt-get install php7.2-gd`
+
+Install this for php unzip
+
+- `$ sudo apt-get install zip unzip php7.2-zip`
+
+Install this for curl error
+
+- `$ sudo apt-get install php7.2-curl`
+- `$sudo apt-get install php7.2-gd`
+
+## Step 15: Run Composer
+
+Hey remember when we installed composer a while ago? Well let’s use it. Now that we have Laravel on our server and all the files we need, lets run composer to get it working. Make sure you are in /var/www/repository_name/ when you run composer commands because you want to be inside your laravel project.
+
+```shell
+$ composer update
+```
+
+Now the web group owns the files instead of the root user. Next we need to give the web group write privileges over our storage directory so it can write to this folder. This is where you store log files, cache, and even file uploads.
+
+```shell
+$ sudo chmod -R 775 storage
+```
+
+Now go to your web browser and type in your domain or IP address to attempt to view the site. What do you see?
+
+## Step 16: Setup .env
+
+How to copy env.example to .env file
+
+```shell
+$ cp .env.example .env
+```
+
+Open .env file
+
+```shell
+$ sudo nano .env
+```
+
+Edit Database Connection
+
+```sheel
+DB_host: ip_name
+DB_database = database_name
+username = root
+DB_password = "database_password"
+```
+
+Finally Optimize the Project
+
+```shell
+$ php artisan route:cache
+$ php artisan route:clear
+$ php artisan config:cache
+$ php artisan config:clear
+```
+
+OR
+
+```shell
+$ php artisan optimize
+```
